@@ -1,5 +1,5 @@
 """
-URL configuration for internal project.
+URL configuration for foodgram project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
-    path('s/<slug:short_link>/', short_url, name='short_url')
+    path('api/', include('users.urls')),
+    path('api/', include('recipes.urls')),
 ]

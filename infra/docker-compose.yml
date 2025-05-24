@@ -5,22 +5,36 @@ services:
     image: postgres:16.0-alpine
     container_name: foodgram-db
     environment:
-      POSTGRES_DB: foodgram_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-foodgram}
+      POSTGRES_USER: ${POSTGRES_USER:-foodgram_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foodgram_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-foodgram_user} -d ${POSTGRES_DB:-foodgram}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
 
   backend:
-    container_name: foodgram-backend
     build: ../backend
-    command: gunicorn --bind 0.0.0.0:8083 internal.wsgi
+    container_name: foodgram-backend
     volumes:
-      - .:/app
-    ports:
-      - "8083:8083"
+      - ../backend:/app
+      - static_volume:/app/collected_static
+      - media_volume:/app/media
+      - ../backend/data:/app/data
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-foodgram}
+      POSTGRES_USER: ${POSTGRES_USER:-foodgram_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foodgram_password}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-key}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     container_name: foodgram-front
@@ -37,9 +51,14 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
+      - ../frontend/build/static:/static
+      - static_volume:/app/collected_static
+      - media_volume:/app/media
     depends_on:
-      - backend
       - frontend
+      - backend
 
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:
