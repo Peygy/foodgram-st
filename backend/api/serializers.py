@@ -19,6 +19,7 @@ class CustomUserSerializer(UserSerializer):
     """Проверка подписки."""
 
     is_subscribed = serializers.SerializerMethodField()
+    avatar = serializers.ImageField(read_only=True)
 
     class Meta:
         model = User
@@ -29,6 +30,7 @@ class CustomUserSerializer(UserSerializer):
             "last_name",
             "email",
             "is_subscribed",
+            "avatar",
         )
 
     def get_is_subscribed(self, obj):
