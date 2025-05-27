@@ -81,4 +81,4 @@ jobs:
         with:
           context: ./frontend/
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_yandex_frontend:latest
+          tags: ${{ secrets.DOCKER_LOGIN_IMAGE }}/foodgram_yandex_frontend:latest
