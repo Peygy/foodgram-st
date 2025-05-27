@@ -1,28 +1,27 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-from users.validators import validate_username
+from django.contrib.auth.models import AbstractUser
+from .validators import valid_username
 
 
 class User(AbstractUser):
     """Модель пользователей."""
 
-    email = models.EmailField(
-        max_length=254,
-        unique=True,
-    )
-    username = models.CharField(
-        max_length=150,
-        unique=True,
-        validators=[
-            validate_username,
-        ],
-    )
     first_name = models.CharField(
         max_length=150,
     )
     last_name = models.CharField(
         max_length=150,
+    )
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+        validators=[
+            valid_username,
+        ],
+    )
+    email = models.EmailField(
+        max_length=254,
+        unique=True,
     )
     password = models.CharField(
         max_length=150,
@@ -52,7 +51,7 @@ class Subscription(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="subscribers",
+        related_name="author",
         verbose_name="Автор",
     )
 
@@ -66,7 +65,7 @@ class Subscription(models.Model):
             ),
             models.CheckConstraint(
                 check=~models.Q(user=models.F("author")),
-                name="user_cannot_follow_himself",
+                name="user_cannot_follow_self",
             ),
         ]
 

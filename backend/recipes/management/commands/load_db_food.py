@@ -13,13 +13,10 @@ class Command(BaseCommand):
 
             for row in reader:
                 name_csv = 0
-                unit_of_measurement_csv = 1
+                measurement_unit_csv = 1
                 try:
-                    obj, created = Ingredient.objects.get_or_create(
-                        name=row[name_csv],
-                        unit_of_measurement=row[unit_of_measurement_csv],
-                    )
+                    obj, created = Ingredient.objects.get_or_create(name=row[name_csv],measurement_unit=row[measurement_unit_csv])
                     if not created:
-                        print(f"Ingredient {obj} exists in the database")
+                        print(f"{obj} есть в базе данных")
                 except Exception as err:
-                    print(f"Error: {row}: {err}")
+                    print(f"Ошибка добавления ингредиента: {row}: {err}")

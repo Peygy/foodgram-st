@@ -1,16 +1,14 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-
 from users.models import User
-
 
 class Ingredient(models.Model):
     name = models.CharField(
         max_length=80,
-        verbose_name="Название ингредиента",
-        help_text="Название ингредиента",
+        verbose_name="Название",
+        help_text="Название",
     )
-    unit_of_measurement = models.CharField(
+    measurement_unit = models.CharField(
         max_length=50,
         verbose_name="Единица измерения",
         help_text="Единица измерения",
@@ -23,7 +21,7 @@ class Ingredient(models.Model):
 
         constraints = (
             models.UniqueConstraint(
-                fields=("name", "unit_of_measurement"),
+                fields=("name", "measurement_unit"),
                 name="unique_ingredient",
             ),
         )
@@ -35,39 +33,39 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     name = models.CharField(
         max_length=200,
-        verbose_name="Название рецепта",
-        help_text="Название рецепта",
+        verbose_name="Название",
+        help_text="Название",
     )
     text = models.TextField(
-        verbose_name="Описание рецепта",
-        help_text="Описание рецепта",
+        verbose_name="Описание",
+        help_text="Описание",
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         through="RecipeIngredients",
         related_name="recipes",
-        verbose_name="Игредиенты для рецепта",
-        help_text="Игредиенты для рецепта",
+        verbose_name="Игредиенты",
+        help_text="Игредиенты",
     )
     cooking_time = models.PositiveSmallIntegerField(
         validators=(MinValueValidator(1),),
-        verbose_name="Время приготовления в минутах",
-        help_text="Время приготовления в минутах",
+        verbose_name="Время приготовления",
+        help_text="Время приготовления",
     )
     image = models.ImageField(
-        verbose_name="Изображение для рецепта",
-        help_text="Изображение для рецепта",
+        verbose_name="Изображение",
+        help_text="Изображение",
         upload_to="recipes/",
     )
     pub_date = models.DateTimeField(
-        verbose_name="Дата публикации рецепта",
+        verbose_name="Дата публикации",
         auto_now_add=True,
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="recipes",
-        verbose_name="Автор рецепта",
+        verbose_name="Автор",
     )
 
     class Meta:
@@ -87,7 +85,7 @@ class RecipeIngredients(models.Model):
         Ingredient, on_delete=models.PROTECT, verbose_name="Ингредиент"
     )
     amount = models.PositiveSmallIntegerField(
-        validators=(MinValueValidator(1, "Не может быть менее 1"),),
+        validators=(MinValueValidator(1, "Не может быть меньше 1"),),
         verbose_name="Количество",
     )
 
