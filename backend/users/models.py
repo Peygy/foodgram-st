@@ -1,30 +1,30 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
-from .validators import valid_username
+from django.db import models
 
 
 class User(AbstractUser):
-    """Модель пользователей."""
-
+    email = models.EmailField(
+        max_length=254,
+        unique=True,
+        verbose_name="Адрес почты",
+        blank=False,
+    )
     first_name = models.CharField(
         max_length=150,
+        verbose_name="Имя"
     )
     last_name = models.CharField(
         max_length=150,
+        verbose_name="Фамилия"
     )
     username = models.CharField(
         max_length=150,
         unique=True,
-        validators=[
-            valid_username,
-        ],
-    )
-    email = models.EmailField(
-        max_length=254,
-        unique=True,
+        verbose_name="Имя пользователя"
     )
     password = models.CharField(
         max_length=150,
+        verbose_name="Шифрованный пароль"
     )
     avatar = models.ImageField(
         upload_to='avatars/',
@@ -32,7 +32,12 @@ class User(AbstractUser):
         blank=True,
     )
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
     class Meta:
+        verbose_name = "пользователя"
+        verbose_name_plural = "пользователи"
         ordering = ("id",)
 
     def __str__(self):
@@ -56,8 +61,8 @@ class Subscription(models.Model):
     )
 
     class Meta:
-        verbose_name = "Подписка"
-        verbose_name_plural = "Подписки"
+        verbose_name = "подписку"
+        verbose_name_plural = "подписки"
 
         constraints = [
             models.UniqueConstraint(

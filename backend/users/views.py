@@ -2,14 +2,17 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
 from .models import Subscription, User
-from .serializers import SubscriptionSerializer, AvatarSerializer
+from .serializers import AvatarSerializer, SubscriptionSerializer
 
 
-class CustomUserViewSet(UserViewSet):
+class AppUserViewSet(UserViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     @action(
@@ -38,7 +41,7 @@ class CustomUserViewSet(UserViewSet):
 
         if user == author:
             return Response(
-                {"detail": "Нельзя подписаться/отписаться от себя"},
+                {"detail": "Невозможно подписаться/отписаться от себя"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -84,12 +87,17 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
         if request.method == "PUT":
             serializer = AvatarSerializer(
-                user, data=request.data, partial=True, context={"request": request}
+                user, data=request.data, partial=True, context={
+                    "request": request
+                }
             )
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
         elif request.method == "DELETE":
             user.avatar.delete(save=True)
             return Response(status=status.HTTP_204_NO_CONTENT)

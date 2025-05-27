@@ -1,30 +1,28 @@
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
-from rest_framework.decorators import api_view
-
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .filters import RecipeFilter, IngredientFilter
-from .permissions import IsAdminAuthorOrReadOnly
+from .filters import IngredientFilter, RecipeFilter
 from .models import (
-    Ingredient,
     Favorite,
+    Ingredient,
     Recipe,
     RecipeIngredients,
     ShoppingCart,
 )
+from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (
     IngredientSerializer,
     RecipeCreateUpdateSerializer,
     RecipeSerializer,
     ShortRecipeSerializer,
 )
+
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
@@ -33,6 +31,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = IngredientFilter
     search_fields = ('^name',)
+
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
@@ -121,20 +120,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
             .annotate(amount=Sum("amount"))
         )
 
-        purchased = [
-            "Список покупок:",
-        ]
+        purchased = ["Список ваших покупок:"]
         for item in list:
             ingredient = Ingredient.objects.get(pk=item["ingredient"])
             amount = item["amount"]
             purchased.append(
-                f"{ingredient.name}: {amount}, "
-                f"{ingredient.measurement_unit}"
+                f"{ingredient.name} ({ingredient.measurement_unit}) — {amount}"
             )
-        purchased_in_file = "\n".join(purchased)
+        file_purchased = "\n".join(purchased)
 
-        response = HttpResponse(purchased_in_file, content_type="text/plain")
-        response["Content-Disposition"] = "attachment; filename=shopping-list.txt"
+        response = HttpResponse(file_purchased, content_type="text/plain")
+        response["Content-Disposition"] = (
+            "attachment; filename=purchased_cart.txt"
+        )
         return response
 
     """Получить короткую ссылку на рецепт."""

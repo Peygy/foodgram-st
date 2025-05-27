@@ -1,6 +1,8 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+
 from users.models import User
+
 
 class Ingredient(models.Model):
     name = models.CharField(
@@ -16,8 +18,8 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-        verbose_name = "Ингредиент"
-        verbose_name_plural = "Ингредиенты"
+        verbose_name = "ингредиент"
+        verbose_name_plural = "ингредиенты"
 
         constraints = (
             models.UniqueConstraint(
@@ -58,7 +60,7 @@ class Recipe(models.Model):
         upload_to="recipes/",
     )
     pub_date = models.DateTimeField(
-        verbose_name="Дата публикации",
+        verbose_name="Дата публикования",
         auto_now_add=True,
     )
     author = models.ForeignKey(
@@ -70,8 +72,8 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ("-pub_date",)
-        verbose_name = "Рецепт"
-        verbose_name_plural = "Рецепты"
+        verbose_name = "рецепт"
+        verbose_name_plural = "рецепты"
 
     def __str__(self):
         return self.name
@@ -79,10 +81,14 @@ class Recipe(models.Model):
 
 class RecipeIngredients(models.Model):
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, verbose_name="Рецепт"
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name="Рецепт"
     )
     ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.PROTECT, verbose_name="Ингредиент"
+        Ingredient,
+        on_delete=models.PROTECT,
+        verbose_name="Ингредиент"
     )
     amount = models.PositiveSmallIntegerField(
         validators=(MinValueValidator(1, "Не может быть меньше 1"),),
@@ -90,8 +96,8 @@ class RecipeIngredients(models.Model):
     )
 
     class Meta:
-        verbose_name = "Ингредиенты"
-        verbose_name_plural = "Ингредиенты"
+        verbose_name = "ингредиенты"
+        verbose_name_plural = "ингредиенты"
 
     def __str__(self):
         return f"В рецепте {self.recipe} есть ингредиент {self.ingredient}"
@@ -112,8 +118,8 @@ class Favorite(models.Model):
     )
 
     class Meta:
-        verbose_name = "Избранное"
-        verbose_name_plural = "Избранное"
+        verbose_name = "избранное"
+        verbose_name_plural = "избранные"
 
         constraints = (
             models.UniqueConstraint(
@@ -122,7 +128,7 @@ class Favorite(models.Model):
         )
 
     def __str__(self):
-        return f"Рецепт {self.recipe} в избранном у пользователя {self.user}"
+        return f"Рецепт {self.recipe} избранный у {self.user}"
 
 
 class ShoppingCart(models.Model):
@@ -140,8 +146,8 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        verbose_name = "Список покупок"
-        verbose_name_plural = "Список покупок"
+        verbose_name = "список покупок"
+        verbose_name_plural = "списки покупок"
 
         constraints = (
             models.UniqueConstraint(
@@ -151,5 +157,5 @@ class ShoppingCart(models.Model):
 
     def __str__(self):
         return (
-            f"Рецепт {self.recipe} в списке покупок у пользователя {self.user}"
+            f"Рецепт {self.recipe} в списке покупок у {self.user}"
         )
