@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import exceptions, serializers
 
-from users.serializers import CustomUserSerializer
+from users.serializers import AppUserSerializer
 from .models import (
     Favorite,
     Ingredient,
@@ -48,7 +48,7 @@ class CreateUpdateRecipeIngredientsSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(read_only=True)
+    author = AppUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -76,7 +76,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(read_only=True)
+    author = AppUserSerializer(read_only=True)
     ingredients = CreateUpdateRecipeIngredientsSerializer(many=True)
     image = Base64ImageField()
     cooking_time = serializers.IntegerField(

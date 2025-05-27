@@ -5,7 +5,7 @@ from .models import Subscription, User
 from .pagination import PageNumberPagination
 from recipes.models import Recipe
 
-class CustomUserSerializer(UserSerializer):
+class AppUserSerializer(UserSerializer):
     """Проверка подписки."""
 
     is_subscribed = serializers.SerializerMethodField()
@@ -44,7 +44,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
             "password",
         )
 
-class SubscriptionSerializer(CustomUserSerializer, PageNumberPagination):
+class SubscriptionSerializer(AppUserSerializer, PageNumberPagination):
     """Подписка."""
 
     email = serializers.ReadOnlyField(source="author.email")

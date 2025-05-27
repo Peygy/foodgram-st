@@ -46,7 +46,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeSerializer
 
     """Добавление рецепта."""
-    def add(self, model, user, pk, name):
+    def add_to_cart(self, model, user, pk, name):
         recipe = get_object_or_404(Recipe, pk=pk)
         relation = model.objects.filter(user=user, recipe=recipe)
         if relation.exists():
@@ -59,7 +59,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     """Удаление рецепта из списка пользователя."""
-    def delete_from_user(self, model, user, pk, name):
+    def delete_from_cart(self, model, user, pk, name):
         recipe = get_object_or_404(Recipe, pk=pk)
         relation = model.objects.filter(user=user, recipe=recipe)
         if not relation.exists():
@@ -81,10 +81,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
         if request.method == "POST":
             name = "избранное"
-            return self.add(Favorite, user, pk, name)
+            return self.add_to_cart(Favorite, user, pk, name)
         if request.method == "DELETE":
             name = "избранного"
-            return self.delete_from_user(Favorite, user, pk, name)
+            return self.delete_from_cart(Favorite, user, pk, name)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     """Добавление и удаление рецептов из списока покупок."""
@@ -98,10 +98,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
         if request.method == "POST":
             name = "список покупок"
-            return self.add(ShoppingCart, user, pk, name)
+            return self.add_to_cart(ShoppingCart, user, pk, name)
         if request.method == "DELETE":
             name = "списка покупок"
-            return self.delete_from_user(ShoppingCart, user, pk, name)
+            return self.delete_from_cart(ShoppingCart, user, pk, name)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     """Скачивание списока покупок."""
