@@ -5,7 +5,6 @@ from rest_framework import serializers
 from recipes.models import Recipe
 
 from .models import Subscription, User
-from .pagination import PageNumberPagination
 
 
 class AppUserCreateSerializer(UserCreateSerializer):
@@ -48,7 +47,7 @@ class AppUserSerializer(UserSerializer):
         ).exists()
 
 
-class SubscriptionSerializer(AppUserSerializer, PageNumberPagination):
+class SubscriptionSerializer(AppUserSerializer):
     """Подписка."""
 
     id = serializers.ReadOnlyField(source="author.id")

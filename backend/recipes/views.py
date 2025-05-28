@@ -7,6 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from .pagination import CustomPageNumberPagination
+
 from .filters import IngredientFilter, RecipeFilter
 from .models import (
     Favorite,
@@ -38,6 +40,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    pagination_class = CustomPageNumberPagination
 
     def get_serializer_class(self):
         if self.action in ("create", "partial_update"):
