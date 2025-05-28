@@ -97,6 +97,13 @@ class AppUserViewSet(UserViewSet):
         """Update the avatar of the current user."""
         user = request.user
         if request.method == "PUT":
+            avatar_data = request.data.get("avatar")
+            if avatar_data is None or avatar_data == "":
+                return Response(
+                    {"detail": "Аватар не может быть пустым"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             serializer = AvatarSerializer(
                 user, data=request.data, partial=True, context={
                     "request": request
