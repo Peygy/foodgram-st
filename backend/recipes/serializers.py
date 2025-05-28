@@ -80,17 +80,36 @@ class RecipeSerializer(serializers.ModelSerializer):
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     author = AppUserSerializer(read_only=True)
     ingredients = CreateUpdateRecipeIngredientsSerializer(many=True)
-    image = Base64ImageField()
+    image = Base64ImageField(required=True)
     cooking_time = serializers.IntegerField(
         validators=(
             MinValueValidator(
-                1, message="Время приготовления не может быть меньше 1!"
+                1, message="Время приготовления не может быть меньше 1"
             ),
         )
     )
 
+    def validate(self, data):
+        if 'image' in data and (data['image'] == '' or data['image'] is None):
+            raise serializers.ValidationError(
+                {"image": "Изображение рецепта не может быть пустым"}
+            )
+
+        if (
+            self.context["request"].method == "POST"
+            or self.context["request"].method == "PATCH"
+        ) and "ingredients" not in data:
+            raise serializers.ValidationError(
+                {"ingredients": "Добавьте хотя бы один ингредиент!"}
+            )
+
+        return data
+
     def validate_ingredients(self, value):
-        if value is None or value == []:
+        if value is None:
+            return None
+
+        if not value:
             raise exceptions.ValidationError(
                 "Добавьте хотя бы один ингредиент!"
             )
@@ -145,7 +164,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         serializer = RecipeSerializer(
             instance, context={"request": self.context.get("request")}
         )
-
         return serializer.data
 
     class Meta:

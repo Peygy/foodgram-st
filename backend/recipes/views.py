@@ -7,8 +7,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .pagination import CustomPageNumberPagination
-
 from .filters import IngredientFilter, RecipeFilter
 from .models import (
     Favorite,
@@ -17,6 +15,7 @@ from .models import (
     RecipeIngredients,
     ShoppingCart,
 )
+from .pagination import CustomPageNumberPagination
 from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (
     IngredientSerializer,

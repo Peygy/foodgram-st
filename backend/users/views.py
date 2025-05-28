@@ -100,7 +100,7 @@ class AppUserViewSet(UserViewSet):
             avatar_data = request.data.get("avatar")
             if avatar_data is None or avatar_data == "":
                 return Response(
-                    {"detail": "Аватар не может быть пустым"}, 
+                    {"detail": "Аватар не может быть пустым"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
