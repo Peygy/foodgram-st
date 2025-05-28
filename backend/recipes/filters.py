@@ -10,13 +10,17 @@ class RecipeFilter(FilterSet):
     author = filters.ModelChoiceFilter(queryset=User.objects.all())
 
     def favorited(self, queryset, name, value):
-        if value:
+        if value and self.request.user.is_authenticated:
             return queryset.filter(favorite__user=self.request.user)
+        if value and not self.request.user.is_authenticated:
+            return queryset.none()
         return queryset
 
     def in_shopping_cart(self, queryset, name, value):
-        if value:
+        if value and self.request.user.is_authenticated:
             return queryset.filter(shopping_list__user=self.request.user)
+        if value and not self.request.user.is_authenticated:
+            return queryset.none()
         return queryset
 
     class Meta:

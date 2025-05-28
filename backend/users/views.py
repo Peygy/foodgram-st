@@ -9,11 +9,22 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 
 from .models import Subscription, User
+from .pagination import LimitPagination
 from .serializers import AvatarSerializer, SubscriptionSerializer
 
 
 class AppUserViewSet(UserViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = LimitPagination
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated],
+    )
+    def me(self, request):
+        """Get details of the current user."""
+        return super().me(request)
 
     @action(
         detail=False,
