@@ -11,6 +11,5 @@ COPY . .
 CMD ["sh", "-c", "python manage.py makemigrations && \
 python manage.py migrate && \
 python manage.py collectstatic --noinput && \
-python manage.py createsuperuser && \
 python manage.py load_db_food --path data/ && \
 gunicorn --bind 0.0.0.0:8000 foodgram.wsgi"]
