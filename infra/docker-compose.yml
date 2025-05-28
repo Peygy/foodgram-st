@@ -38,7 +38,7 @@ services:
     container_name: front
     build: ../frontend
     volumes:
-      - ../frontend/:/app/result_build/
+      - ../frontend/:/app/frontbuild/
 
   nginx:
     image: nginx:1.25.4-alpine
