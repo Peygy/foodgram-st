@@ -8,8 +8,9 @@ from .models import Subscription, User
 
 
 class AppUserCreateSerializer(UserCreateSerializer):
-    """При создании пользователя."""
-
+    """
+    Serializer для создания нового пользователя
+    """
     class Meta(UserCreateSerializer.Meta):
         model = User
         fields = (
@@ -23,8 +24,9 @@ class AppUserCreateSerializer(UserCreateSerializer):
 
 
 class AppUserSerializer(UserSerializer):
-    """Проверка подписки."""
-
+    """
+    Serializer для информации о пользователе
+    """
     is_subscribed = serializers.SerializerMethodField()
     avatar = serializers.ImageField(read_only=True)
 
@@ -41,6 +43,9 @@ class AppUserSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
+        """
+        Проверяет, подписан ли текущий пользователь на данного пользователя
+        """
         user_id = self.context.get("request").user.id
         return Subscription.objects.filter(
             author=obj.id, user=user_id
@@ -48,8 +53,9 @@ class AppUserSerializer(UserSerializer):
 
 
 class SubscriptionSerializer(AppUserSerializer):
-    """Подписка."""
-
+    """
+    Serializer для подписки на автора
+    """
     id = serializers.ReadOnlyField(source="author.id")
     email = serializers.ReadOnlyField(source="author.email")
     username = serializers.ReadOnlyField(source="author.username")
@@ -75,7 +81,9 @@ class SubscriptionSerializer(AppUserSerializer):
         )
 
     def get_recipes(self, obj):
-        """Получение списка рецептов автора."""
+        """
+        Получает список рецептов автора с учетом лимита
+        """
         from recipes.serializers import ShortRecipeSerializer
 
         recipes_limit = self.context.get("request").query_params.get(
@@ -104,13 +112,16 @@ class SubscriptionSerializer(AppUserSerializer):
         return []
 
     def get_recipes_count(self, obj):
-        """Количество рецептов автора."""
+        """
+        Получает количество рецептов у автора
+        """
         return Recipe.objects.filter(author=obj.id).count()
 
 
 class AvatarSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели пользователя с полем аватара."""
-
+    """
+    Serializer для обновления аватара пользователя
+    """
     avatar = Base64ImageField()
 
     class Meta:

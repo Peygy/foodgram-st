@@ -5,6 +5,10 @@ from .validators import validator_username
 
 
 class User(AbstractUser):
+    """
+    Расширенная модель пользователя
+    с дополнительными полями и валидацией username
+    """
     email = models.EmailField(
         max_length=254,
         unique=True,
@@ -50,8 +54,10 @@ class User(AbstractUser):
 
 
 class Subscription(models.Model):
-    """Модель подписки."""
-
+    """
+    Модель для подписки пользователя
+    на другого пользователя (автора)
+    """
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

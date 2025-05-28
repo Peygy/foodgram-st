@@ -14,6 +14,9 @@ from .serializers import AvatarSerializer, SubscriptionSerializer
 
 
 class AppUserViewSet(UserViewSet):
+    """
+    ViewSet для пользователя
+    """
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = LimitPagination
 
@@ -23,7 +26,9 @@ class AppUserViewSet(UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
-        """Get details of the current user."""
+        """
+        Получить информацию о пользователе
+        """
         return super().me(request)
 
     @action(
@@ -32,7 +37,9 @@ class AppUserViewSet(UserViewSet):
         permission_classes=(IsAuthenticated,),
     )
     def subscriptions(self, request):
-        """Список авторов, на которых подписан пользователь."""
+        """
+        Получить список авторов, на которых подписан пользователь
+        """
         user = self.request.user
         queryset = user.follower.all()
         pages = self.paginate_queryset(queryset)
@@ -46,7 +53,9 @@ class AppUserViewSet(UserViewSet):
         methods=("post", "delete"),
     )
     def subscribe(self, request, id=None):
-        """Подписка на автора."""
+        """
+        Подписаться или отписаться от автора
+        """
         user = self.request.user
         author = get_object_or_404(User, pk=id)
 
@@ -94,7 +103,9 @@ class AppUserViewSet(UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def update_avatar(self, request):
-        """Update the avatar of the current user."""
+        """
+        Обновить или удалить аватар пользователя
+        """
         user = request.user
         if request.method == "PUT":
             avatar_data = request.data.get("avatar")

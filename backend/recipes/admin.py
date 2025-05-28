@@ -17,6 +17,9 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientsInLine,)
 
     def get_queryset(self, request):
+        """
+        Переопределение queryset для добавления подсчета избранных
+        """
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(
             _favorite_count=Count("favorite", distinct=True)
@@ -24,6 +27,9 @@ class RecipeAdmin(admin.ModelAdmin):
         return queryset
 
     def favorite_count(self, obj):
+        """
+        Отображение количества добавлений рецепта в избранное
+        """
         return obj._favorite_count
     favorite_count.admin_order_field = '_favorite_count'
     favorite_count.short_description = 'В избранном'

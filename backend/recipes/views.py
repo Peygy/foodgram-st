@@ -26,6 +26,9 @@ from .serializers import (
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet для Ingredient
+    """
     pagination_class = None
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
@@ -35,6 +38,9 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet для Recipe
+    """
     queryset = Recipe.objects.all()
     permission_classes = (IsAdminAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
@@ -42,12 +48,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPagination
 
     def get_serializer_class(self):
+        """
+        Определяет используемый сериализатор
+        в зависимости от выполняемого действия
+        """
         if self.action in ("create", "partial_update"):
             return RecipeCreateUpdateSerializer
         return RecipeSerializer
 
-    """Добавление рецепта."""
     def add_to_cart(self, model, user, pk, name):
+        """
+        Дополнительный метод для добавления рецепта
+        в избранное или список покупок
+        """
         recipe = get_object_or_404(Recipe, pk=pk)
         relation = model.objects.filter(user=user, recipe=recipe)
         if relation.exists():
@@ -59,8 +72,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer = ShortRecipeSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    """Удаление рецепта из списка пользователя."""
     def delete_from_cart(self, model, user, pk, name):
+        """
+        Дополнительный метод для удаления рецепта
+        из избранного или списка покупок
+        """
         recipe = get_object_or_404(Recipe, pk=pk)
         relation = model.objects.filter(user=user, recipe=recipe)
         if not relation.exists():
@@ -71,7 +87,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         relation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    """Добавление и удаление рецептов из избранного."""
     @action(
         detail=True,
         methods=("post", "delete"),
@@ -79,6 +94,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_name="favorite",
     )
     def favorite(self, request, pk=None):
+        """
+        Добавляет или удаляет рецепт из избранного
+        """
         user = request.user
         if request.method == "POST":
             name = "избранное"
@@ -88,7 +106,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.delete_from_cart(Favorite, user, pk, name)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    """Добавление и удаление рецептов из списока покупок."""
     @action(
         detail=True,
         methods=("post", "delete"),
@@ -96,6 +113,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_name="shopping_cart",
     )
     def shopping_cart(self, request, pk=None):
+        """
+        Добавляет или удаляет рецепт из списка покупок
+        """
         user = request.user
         if request.method == "POST":
             name = "список покупок"
@@ -105,7 +125,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.delete_from_cart(ShoppingCart, user, pk, name)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    """Скачивание списока покупок."""
     @action(
         detail=False,
         methods=("get",),
@@ -114,6 +133,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_name="download_shopping_cart",
     )
     def download_shopping_cart(self, request):
+        """
+        Скачивает список покупок в текстовый файл
+        """
         shopping_cart = ShoppingCart.objects.filter(user=self.request.user)
         recipes = [item.recipe.id for item in shopping_cart]
         list = (
@@ -136,7 +158,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                            "purchased_cart.txt")
         return response
 
-    """Получить короткую ссылку на рецепт."""
     @action(
         detail=True,
         methods=("get",),
@@ -144,6 +165,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_name="get-link",
     )
     def get_link(self, request, pk=None):
+        """
+        Получает короткую ссылку на рецепт
+        """
         recipe = get_object_or_404(Recipe, pk=pk)
         short_link = f"{request.get_host()}/s/{recipe.id}"
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)

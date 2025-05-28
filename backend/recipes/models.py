@@ -5,6 +5,9 @@ from users.models import User
 
 
 class Ingredient(models.Model):
+    """
+    Модель для ингредиента
+    """
     name = models.CharField(
         max_length=80,
         verbose_name="Название",
@@ -33,6 +36,9 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    """
+    Модель для рецепта
+    """
     name = models.CharField(
         max_length=200,
         verbose_name="Название",
@@ -80,6 +86,10 @@ class Recipe(models.Model):
 
 
 class RecipeIngredients(models.Model):
+    """
+    Модель для связи между рецептами и ингредиентами,
+    c количеством ингредиента в рецепте
+    """
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -104,6 +114,9 @@ class RecipeIngredients(models.Model):
 
 
 class Favorite(models.Model):
+    """
+    Модель для избранных рецептов пользователя
+    """
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -132,6 +145,9 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
+    """
+    Модель для списка покупок пользователя
+    """
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
