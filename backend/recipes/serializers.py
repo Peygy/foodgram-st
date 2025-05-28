@@ -25,13 +25,13 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source="ingredient.id")
     name = serializers.ReadOnlyField(source="ingredient.name")
-    unit_of_measurement = serializers.ReadOnlyField(
-        source="ingredient.unit_of_measurement"
+    measurement_unit = serializers.ReadOnlyField(
+        source="ingredient.measurement_unit"
     )
 
     class Meta:
         model = RecipeIngredients
-        fields = ("id", "name", "unit_of_measurement", "amount")
+        fields = ("id", "name", "measurement_unit", "amount")
 
 
 class CreateUpdateRecipeIngredientsSerializer(serializers.ModelSerializer):
@@ -90,7 +90,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     )
 
     def validate_ingredients(self, value):
-        if not value:
+        if value is None or value == []:
             raise exceptions.ValidationError(
                 "Добавьте хотя бы один ингредиент!"
             )
