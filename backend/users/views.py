@@ -16,7 +16,7 @@ from .constants import (
 )
 from .models import Subscription, User
 from .pagination import LimitPagination
-from .serializers import AvatarSerializer, SubscriptionSerializer
+from .serializers import UserAvatarSerializer, UserSubscriptionSerializer
 
 
 class AppUserViewSet(UserViewSet):
@@ -46,10 +46,9 @@ class AppUserViewSet(UserViewSet):
         """
         Получить список авторов, на которых подписан пользователь
         """
-        user = self.request.user
-        queryset = user.follower.all()
-        pages = self.paginate_queryset(queryset)
-        serializer = SubscriptionSerializer(
+        subscribed_authors = User.objects.filter(author__user=self.request.user)
+        pages = self.paginate_queryset(subscribed_authors)
+        serializer = UserSubscriptionSerializer(
             pages, many=True, context={"request": request}
         )
         return self.get_paginated_response(serializer.data)
@@ -78,9 +77,9 @@ class AppUserViewSet(UserViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            queryset = Subscription.objects.create(author=author, user=user)
-            serializer = SubscriptionSerializer(
-                queryset, context={"request": request}
+            Subscription.objects.create(author=author, user=user)
+            serializer = UserSubscriptionSerializer(
+                author, context={"request": request}
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -121,7 +120,7 @@ class AppUserViewSet(UserViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            serializer = AvatarSerializer(
+            serializer = UserAvatarSerializer(
                 user, data=request.data, partial=True, context={
                     "request": request
                 }

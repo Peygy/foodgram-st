@@ -2,9 +2,6 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from recipes.models import Recipe
-
-from .constants import RECIPES_LIMIT_QUERY_PARAM
 from .models import Subscription, User
 
 
@@ -53,22 +50,15 @@ class AppUserSerializer(UserSerializer):
         ).exists()
 
 
-class SubscriptionSerializer(AppUserSerializer):
+class UserSubscriptionSerializer(AppUserSerializer):
     """
     Serializer для подписки на автора
     """
-    id = serializers.ReadOnlyField(source="author.id")
-    email = serializers.ReadOnlyField(source="author.email")
-    username = serializers.ReadOnlyField(source="author.username")
-    first_name = serializers.ReadOnlyField(source="author.first_name")
-    last_name = serializers.ReadOnlyField(source="author.last_name")
-    is_subscribed = serializers.SerializerMethodField()
-    avatar = serializers.ImageField(source="author.avatar", read_only=True)
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.ReadOnlyField(source="author.recipes.count")
+    recipes_count = serializers.ReadOnlyField(source="recipes.count")
 
     class Meta:
-        model = Subscription
+        model = User
         fields = (
             "id",
             "username",
@@ -88,38 +78,26 @@ class SubscriptionSerializer(AppUserSerializer):
         from recipes.serializers import ShortRecipeSerializer
 
         recipes_limit = self.context.get("request").query_params.get(
-            RECIPES_LIMIT_QUERY_PARAM
+            "recipes_limit"
         )
-
         try:
             recipes_limit = (int(recipes_limit) if recipes_limit is not None
                              else None)
         except ValueError:
             recipes_limit = None
 
-        author_recipes = obj.author.recipes.all()
+        recipes = obj.recipes.all()
+        if recipes_limit:
+            recipes = recipes[:recipes_limit]
 
-        if recipes_limit is not None:
-            author_recipes = author_recipes[:recipes_limit]
-
-        if author_recipes:
-            serializer = ShortRecipeSerializer(
-                author_recipes,
-                context={"request": self.context.get("request")},
-                many=True,
-            )
-            return serializer.data
-
-        return []
-
-    def get_recipes_count(self, obj):
-        """
-        Получает количество рецептов у автора
-        """
-        return Recipe.objects.filter(author=obj.id).count()
+        return ShortRecipeSerializer(
+            recipes,
+            context={"request": self.context.get("request")},
+            many=True
+        ).data
 
 
-class AvatarSerializer(serializers.ModelSerializer):
+class UserAvatarSerializer(serializers.ModelSerializer):
     """
     Serializer для обновления аватара пользователя
     """
