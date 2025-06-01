@@ -2,7 +2,7 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv("SECRET_KEY", default="r=w+3lf%txx&%e9z&y@xmar!k#d5%*bsrf6(6x19fy=&5#01wj")
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
@@ -108,9 +108,9 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     "HIDE_USERS": False,
     "SERIALIZERS": {
-        "user": "users.serializers.AppUserSerializer",
-        "user_create": "users.serializers.AppUserCreateSerializer",
-        "current_user": "users.serializers.AppUserSerializer",
+        "user": "api.serializers.AppUserSerializer",
+        "user_create": "api.serializers.AppUserCreateSerializer",
+        "current_user": "api.serializers.AppUserSerializer",
     },
     "PERMISSIONS": {
         "user_list": ["rest_framework.permissions.AllowAny"],

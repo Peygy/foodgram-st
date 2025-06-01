@@ -1,13 +1,114 @@
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
-from users.serializers import AppUserSerializer
+from recipes.models import Ingredient, Recipe, RecipeIngredients
+from users.models import Subscription, User
 
-from .models import (
-    Ingredient,
-    Recipe,
-    RecipeIngredients,
-)
+from .constants import RECIPES_LIMIT_QUERY_PARAM
+
+
+class AppUserCreateSerializer(UserCreateSerializer):
+    """
+    Serializer для создания нового пользователя
+    """
+    class Meta(UserCreateSerializer.Meta):
+        model = User
+        fields = (
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "password",
+        )
+
+
+class AppUserSerializer(UserSerializer):
+    """
+    Serializer для информации о пользователе
+    """
+    is_subscribed = serializers.SerializerMethodField()
+    avatar = serializers.ImageField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed",
+            "avatar",
+        )
+
+    def get_is_subscribed(self, obj):
+        """
+        Проверяет, подписан ли текущий пользователь на данного пользователя
+        """
+        user_id = self.context.get("request").user.id
+        return Subscription.objects.filter(
+            author=obj.id, user=user_id
+        ).exists()
+
+
+class UserSubscriptionSerializer(AppUserSerializer):
+    """
+    Serializer для подписки на автора
+    """
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.ReadOnlyField(source="recipes.count")
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "is_subscribed",
+            "avatar",
+            "recipes",
+            "recipes_count",
+        )
+
+    def get_recipes(self, obj):
+        """
+        Получает список рецептов автора с учетом лимита
+        """
+        from .serializers import ShortRecipeSerializer
+
+        recipes_limit = self.context.get("request").query_params.get(
+            RECIPES_LIMIT_QUERY_PARAM
+        )
+        try:
+            recipes_limit = (int(recipes_limit) if recipes_limit is not None
+                             else None)
+        except ValueError:
+            recipes_limit = None
+
+        recipes = obj.recipes.all()
+        if recipes_limit:
+            recipes = recipes[:recipes_limit]
+
+        return ShortRecipeSerializer(
+            recipes,
+            context={"request": self.context.get("request")},
+            many=True
+        ).data
+
+
+class UserAvatarSerializer(serializers.ModelSerializer):
+    """
+    Serializer для обновления аватара пользователя
+    """
+    avatar = Base64ImageField()
+
+    class Meta:
+        model = User
+        fields = ('avatar',)
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -96,7 +197,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         model = Recipe
         exclude = ("pub_date",)
 
-
     def validate(self, data):
         """
         Метод валидации данных для создания/обновления рецепта
@@ -115,7 +215,10 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         ingredient_ids = [item["id"] for item in ingredients]
         if len(ingredient_ids) != len(set(ingredient_ids)):
             raise serializers.ValidationError(
-                {"ingredients": "Рецепт не может включать два одинаковых ингредиента!"}
+                {
+                    "ingredients":
+                    "Рецепт не может включать два одинаковых ингредиента!"
+                }
             )
 
         return data
@@ -154,7 +257,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         Метод для представления рецепта после создания/обновления
         """
         return RecipeSerializer(
-            instance, 
+            instance,
             context={"request": self.context.get("request")}
         ).data
 
