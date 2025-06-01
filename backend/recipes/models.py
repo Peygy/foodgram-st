@@ -3,21 +3,31 @@ from django.db import models
 
 from users.models import User
 
+from .constants import (
+    AMOUNT_MIN_VALUE,
+    COOKING_TIME_MIN_VALUE,
+    INGREDIENT_NAME_MAX_LENGTH,
+    MEASUREMENT_UNIT_DEFAULT,
+    MEASUREMENT_UNIT_MAX_LENGTH,
+    RECIPE_IMAGE_UPLOAD_TO,
+    RECIPE_NAME_MAX_LENGTH,
+)
+
 
 class Ingredient(models.Model):
     """
     Модель для ингредиента
     """
     name = models.CharField(
-        max_length=80,
+        max_length=INGREDIENT_NAME_MAX_LENGTH,
         verbose_name="Название",
         help_text="Название",
     )
     measurement_unit = models.CharField(
-        max_length=50,
+        max_length=MEASUREMENT_UNIT_MAX_LENGTH,
         verbose_name="Единица измерения",
         help_text="Единица измерения",
-        default="g",
+        default=MEASUREMENT_UNIT_DEFAULT,
     )
 
     class Meta:
@@ -40,7 +50,7 @@ class Recipe(models.Model):
     Модель для рецепта
     """
     name = models.CharField(
-        max_length=200,
+        max_length=RECIPE_NAME_MAX_LENGTH,
         verbose_name="Название",
         help_text="Название",
     )
@@ -56,14 +66,14 @@ class Recipe(models.Model):
         help_text="Игредиенты",
     )
     cooking_time = models.PositiveSmallIntegerField(
-        validators=(MinValueValidator(1),),
+        validators=(MinValueValidator(COOKING_TIME_MIN_VALUE),),
         verbose_name="Время приготовления",
         help_text="Время приготовления",
     )
     image = models.ImageField(
         verbose_name="Изображение",
         help_text="Изображение",
-        upload_to="recipes/",
+        upload_to=RECIPE_IMAGE_UPLOAD_TO,
     )
     pub_date = models.DateTimeField(
         verbose_name="Дата публикования",
@@ -101,7 +111,12 @@ class RecipeIngredients(models.Model):
         verbose_name="Ингредиент"
     )
     amount = models.PositiveSmallIntegerField(
-        validators=(MinValueValidator(1, "Не может быть меньше 1"),),
+        validators=(
+            MinValueValidator(
+                AMOUNT_MIN_VALUE,
+                "Не может быть меньше 1"
+            ),
+        ),
         verbose_name="Количество",
     )
 

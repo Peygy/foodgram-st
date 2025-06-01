@@ -1,6 +1,14 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from .constants import (
+    AVATAR_UPLOAD_TO,
+    EMAIL_MAX_LENGTH,
+    FIRST_NAME_MAX_LENGTH,
+    LAST_NAME_MAX_LENGTH,
+    PASSWORD_MAX_LENGTH,
+    USERNAME_MAX_LENGTH,
+)
 from .validators import validator_username
 
 
@@ -10,21 +18,21 @@ class User(AbstractUser):
     с дополнительными полями и валидацией username
     """
     email = models.EmailField(
-        max_length=254,
+        max_length=EMAIL_MAX_LENGTH,
         unique=True,
         verbose_name="Адрес почты",
         blank=False,
     )
     first_name = models.CharField(
-        max_length=150,
+        max_length=FIRST_NAME_MAX_LENGTH,
         verbose_name="Имя"
     )
     last_name = models.CharField(
-        max_length=150,
+        max_length=LAST_NAME_MAX_LENGTH,
         verbose_name="Фамилия"
     )
     username = models.CharField(
-        max_length=150,
+        max_length=USERNAME_MAX_LENGTH,
         unique=True,
         verbose_name="Имя пользователя",
         validators=[
@@ -32,11 +40,11 @@ class User(AbstractUser):
         ],
     )
     password = models.CharField(
-        max_length=150,
+        max_length=PASSWORD_MAX_LENGTH,
         verbose_name="Шифрованный пароль"
     )
     avatar = models.ImageField(
-        upload_to='avatars/',
+        upload_to=AVATAR_UPLOAD_TO,
         null=True,
         blank=True,
     )

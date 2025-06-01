@@ -8,6 +8,12 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 
+from .constants import (
+    ERROR_ALREADY_SUBSCRIBED,
+    ERROR_AVATAR_EMPTY,
+    ERROR_NOT_SUBSCRIBED,
+    ERROR_SELF_SUBSCRIBE,
+)
 from .models import Subscription, User
 from .pagination import LimitPagination
 from .serializers import AvatarSerializer, SubscriptionSerializer
@@ -61,14 +67,14 @@ class AppUserViewSet(UserViewSet):
 
         if user == author:
             return Response(
-                {"detail": "Невозможно подписаться/отписаться от себя"},
+                {"detail": ERROR_SELF_SUBSCRIBE},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if self.request.method == "POST":
             if Subscription.objects.filter(user=user, author=author).exists():
                 return Response(
-                    {"detail": "Подписка уже оформлена"},
+                    {"detail": ERROR_ALREADY_SUBSCRIBED},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -83,7 +89,7 @@ class AppUserViewSet(UserViewSet):
                 user=user, author=author
             ).exists():
                 return Response(
-                    {"detail": "Вы уже отписаны"},
+                    {"detail": ERROR_NOT_SUBSCRIBED},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -111,7 +117,7 @@ class AppUserViewSet(UserViewSet):
             avatar_data = request.data.get("avatar")
             if avatar_data is None or avatar_data == "":
                 return Response(
-                    {"detail": "Аватар не может быть пустым"},
+                    {"detail": ERROR_AVATAR_EMPTY},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 

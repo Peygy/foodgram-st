@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 from recipes.models import Recipe
 
+from .constants import RECIPES_LIMIT_QUERY_PARAM
 from .models import Subscription, User
 
 
@@ -87,7 +88,7 @@ class SubscriptionSerializer(AppUserSerializer):
         from recipes.serializers import ShortRecipeSerializer
 
         recipes_limit = self.context.get("request").query_params.get(
-            "recipes_limit"
+            RECIPES_LIMIT_QUERY_PARAM
         )
 
         try:
