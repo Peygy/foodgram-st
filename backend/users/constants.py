@@ -10,3 +10,5 @@ ERROR_SELF_SUBSCRIBE = "Невозможно подписаться/отписа
 ERROR_ALREADY_SUBSCRIBED = "Подписка уже оформлена"
 ERROR_NOT_SUBSCRIBED = "Вы уже отписаны"
 ERROR_AVATAR_EMPTY = "Аватар не может быть пустым"
+
+RECIPES_LIMIT_QUERY_PARAM = "recipes_limit"

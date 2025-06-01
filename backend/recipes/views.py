@@ -1,7 +1,6 @@
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -57,32 +56,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeCreateUpdateSerializer
         return RecipeSerializer
 
-    def add_to_cart(self, model, user, pk, name):
-        """
-        Дополнительный метод для добавления рецепта
-        в избранное или список покупок
-        """
-        recipe = get_object_or_404(Recipe, pk=pk)
-        relation = model.objects.filter(user=user, recipe=recipe)
-        if relation.exists():
-            return Response(
-                {"detail": f"Нельзя повторно добавить рецепт в {name}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        model.objects.create(user=user, recipe=recipe)
-        serializer = ShortRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def perform_create(self, serializer):
+        """Сохраняет автора рецепта при создании."""
+        serializer.save(author=self.request.user)
 
-    def delete_from_cart(self, model, user, pk, name):
+    def _handle_recipe_relation(self, model, user, recipe, action_type):
         """
-        Дополнительный метод для удаления рецепта
-        из избранного или списка покупок
+        Обрабатывает добавление/удаление связи между пользователем и рецептом
         """
-        recipe = get_object_or_404(Recipe, pk=pk)
         relation = model.objects.filter(user=user, recipe=recipe)
+        
+        if action_type == 'add':
+            if relation.exists():
+                return Response(
+                    {"detail": "Рецепт уже добавлен"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            model.objects.create(user=user, recipe=recipe)
+            serializer = ShortRecipeSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         if not relation.exists():
             return Response(
-                {"detail": f"Нельзя повторно удалить рецепт из {name}"},
+                {"detail": "Рецепт не найден"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         relation.delete()
@@ -98,14 +94,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         Добавляет или удаляет рецепт из избранного
         """
-        user = request.user
-        if request.method == "POST":
-            name = "избранное"
-            return self.add_to_cart(Favorite, user, pk, name)
-        if request.method == "DELETE":
-            name = "избранного"
-            return self.delete_from_cart(Favorite, user, pk, name)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        recipe = get_object_or_404(Recipe, pk=pk)
+        action_type = 'add' if request.method == "POST" else 'remove'
+        return self._handle_recipe_relation(
+            Favorite, request.user, recipe, action_type
+        )
 
     @action(
         detail=True,
@@ -117,14 +110,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         Добавляет или удаляет рецепт из списка покупок
         """
-        user = request.user
-        if request.method == "POST":
-            name = "список покупок"
-            return self.add_to_cart(ShoppingCart, user, pk, name)
-        if request.method == "DELETE":
-            name = "списка покупок"
-            return self.delete_from_cart(ShoppingCart, user, pk, name)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        recipe = get_object_or_404(Recipe, pk=pk)
+        action_type = 'add' if request.method == "POST" else 'remove'
+        return self._handle_recipe_relation(
+            ShoppingCart, request.user, recipe, action_type
+        )
 
     @action(
         detail=False,
@@ -137,26 +127,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         Скачивает список покупок в текстовый файл
         """
-        shopping_cart = ShoppingCart.objects.filter(user=self.request.user)
-        recipes = [item.recipe.id for item in shopping_cart]
-        list = (
-            RecipeIngredients.objects.filter(recipe__in=recipes)
-            .values("ingredient")
-            .annotate(amount=Sum("amount"))
+        ingredients = (
+            RecipeIngredients.objects
+            .filter(recipe__shopping_list__user=request.user)
+            .values('ingredient__name', 'ingredient__measurement_unit')
+            .annotate(total_amount=Sum('amount'))
+            .order_by('ingredient__name')
         )
 
         purchased = ["Список ваших покупок:"]
-        for item in list:
-            ingredient = Ingredient.objects.get(pk=item["ingredient"])
-            amount = item["amount"]
+        for item in ingredients:
             purchased.append(
-                f"{ingredient.name} ({ingredient.measurement_unit}) — {amount}"
+                f"{item['ingredient__name']} "
+                f"({item['ingredient__measurement_unit']}) — "
+                f"{item['total_amount']}"
             )
-        file_purchased = "\n".join(purchased)
 
-        response = HttpResponse(file_purchased, content_type="text/plain")
-        response["Content-Disposition"] = ("attachment; filename="
-                                           "purchased_cart.txt")
+        response = HttpResponse("\n".join(purchased), content_type="text/plain")
+        response["Content-Disposition"] = "attachment; filename=purchased_cart.txt"
         return response
 
     @action(
@@ -177,7 +165,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         Совершает редирект на страницу рецепта
         """
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        detail_url = reverse('recipe-detail', kwargs={'pk': recipe.id})
-        detail_url = f'/recipes/{recipe_id}/'
-        return redirect(detail_url)
+        get_object_or_404(Recipe, id=recipe_id)
+        return redirect(f'/recipes/{recipe_id}')

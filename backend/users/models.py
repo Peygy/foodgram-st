@@ -55,7 +55,9 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "пользователя"
         verbose_name_plural = "пользователи"
-        ordering = ("id",)
+        ordering = (
+            "id",
+        )
 
     def __str__(self):
         return self.username

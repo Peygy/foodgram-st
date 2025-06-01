@@ -2,6 +2,8 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
+from users.constants import RECIPES_LIMIT_QUERY_PARAM
+
 from .models import Subscription, User
 
 
@@ -78,7 +80,7 @@ class UserSubscriptionSerializer(AppUserSerializer):
         from recipes.serializers import ShortRecipeSerializer
 
         recipes_limit = self.context.get("request").query_params.get(
-            "recipes_limit"
+            RECIPES_LIMIT_QUERY_PARAM
         )
         try:
             recipes_limit = (int(recipes_limit) if recipes_limit is not None

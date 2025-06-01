@@ -6,11 +6,12 @@ from users.models import User
 from .constants import (
     AMOUNT_MIN_VALUE,
     COOKING_TIME_MIN_VALUE,
-    INGREDIENT_NAME_MAX_LENGTH,
+    COOKING_TIME_MIN_VALUE_ERROR_MESSAGE,
     MEASUREMENT_UNIT_DEFAULT,
-    MEASUREMENT_UNIT_MAX_LENGTH,
     RECIPE_IMAGE_UPLOAD_TO,
     RECIPE_NAME_MAX_LENGTH,
+    AMOUNT_MIN_VALUE_ERROR_MESSAGE,
+    MAX_FIELD_LENGTH,
 )
 
 
@@ -19,12 +20,12 @@ class Ingredient(models.Model):
     Модель для ингредиента
     """
     name = models.CharField(
-        max_length=INGREDIENT_NAME_MAX_LENGTH,
+        max_length=MAX_FIELD_LENGTH,
         verbose_name="Название",
         help_text="Название",
     )
     measurement_unit = models.CharField(
-        max_length=MEASUREMENT_UNIT_MAX_LENGTH,
+        max_length=MAX_FIELD_LENGTH,
         verbose_name="Единица измерения",
         help_text="Единица измерения",
         default=MEASUREMENT_UNIT_DEFAULT,
@@ -66,7 +67,12 @@ class Recipe(models.Model):
         help_text="Игредиенты",
     )
     cooking_time = models.PositiveSmallIntegerField(
-        validators=(MinValueValidator(COOKING_TIME_MIN_VALUE),),
+        validators=(
+            MinValueValidator(
+                COOKING_TIME_MIN_VALUE,
+                COOKING_TIME_MIN_VALUE_ERROR_MESSAGE
+            ),
+        ),
         verbose_name="Время приготовления",
         help_text="Время приготовления",
     )
@@ -103,7 +109,8 @@ class RecipeIngredients(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        verbose_name="Рецепт"
+        verbose_name="Рецепт",
+        related_name="ingredient_items"
     )
     ingredient = models.ForeignKey(
         Ingredient,
@@ -114,7 +121,7 @@ class RecipeIngredients(models.Model):
         validators=(
             MinValueValidator(
                 AMOUNT_MIN_VALUE,
-                "Не может быть меньше 1"
+                AMOUNT_MIN_VALUE_ERROR_MESSAGE
             ),
         ),
         verbose_name="Количество",
@@ -123,6 +130,13 @@ class RecipeIngredients(models.Model):
     class Meta:
         verbose_name = "ингредиенты"
         verbose_name_plural = "ингредиенты"
+
+        constraints = (
+            models.UniqueConstraint(
+                fields=("recipe", "ingredient"),
+                name="unique_recipe_ingredient",
+            ),
+        )
 
     def __str__(self):
         return f"В рецепте {self.recipe} есть ингредиент {self.ingredient}"
