@@ -15,6 +15,8 @@ Foodgram - это веб-приложение, разработанное для
 *   **Deployment/Containerization:** Docker, Docker Compose
 *   **API Documentation:** Redoc
 
+Код соответсвует PEP8. Анализ проводился инструментами flake8 и flake8-isort.
+
 ## Автор
 
 Автор проекта - Исаков Леонид Александрович.
