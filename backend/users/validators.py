@@ -10,10 +10,8 @@ def validator_username(value):
     Валидатор для поля username.
     Проверяет наличие недопустимых символов
     """
-    bad_chars = "".join(re.split(USERNAME_REGEX_PATTERN, value))
-
-    if len(bad_chars) != 0:
+    # Думаю так будет лучше, проверяем паттерн сразу
+    if not re.fullmatch(USERNAME_REGEX_PATTERN, value):
         raise ValidationError(
-            f"Есть недопустимые символы: {bad_chars}"
-            f"Для поля `username` не должны приниматься значения $"
+            "Имя пользователя содержит недопустимые символы."
         )

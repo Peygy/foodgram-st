@@ -13,7 +13,10 @@ class Command(BaseCommand):
         file_path = options["path"] + "ingredients.csv"
 
         existing_ingredients = set(
-            Ingredient.objects.values_list('name', 'measurement_unit')
+            Ingredient.objects.values_list(
+                'name',
+                'measurement_unit',
+            )
         )
 
         ingredients_to_create = []
@@ -34,7 +37,8 @@ class Command(BaseCommand):
 
         if ingredients_to_create:
             created_count = len(
-                Ingredient.objects.
-                bulk_create(ingredients_to_create)
+                Ingredient.objects.bulk_create(
+                    ingredients_to_create,
+                )
             )
             print(f"Добавлено {created_count} новых ингредиентов")

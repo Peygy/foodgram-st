@@ -1,8 +1,7 @@
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import (
@@ -10,6 +9,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
+from djoser.views import UserViewSet
 
 from recipes.models import (
     Favorite,
@@ -19,7 +19,6 @@ from recipes.models import (
     ShoppingCart,
 )
 from users.models import Subscription, User
-
 from .constants import (
     ACTION_TYPE_ADD,
     ACTION_TYPE_REMOVE,
@@ -70,8 +69,9 @@ class AppUserViewSet(UserViewSet):
         """
         Получить список авторов, на которых подписан пользователь
         """
-        subscribed_authors = User.objects.\
-            filter(author__user=self.request.user)
+        subscribed_authors = User.objects.filter(
+            author__user=self.request.user,
+        )
         pages = self.paginate_queryset(subscribed_authors)
         serializer = UserSubscriptionSerializer(
             pages, many=True, context={"request": request}
@@ -110,7 +110,8 @@ class AppUserViewSet(UserViewSet):
 
         if self.request.method == "DELETE":
             if not Subscription.objects.filter(
-                user=user, author=author
+                user=user,
+                author=author,
             ).exists():
                 return Response(
                     {"detail": ERROR_NOT_SUBSCRIBED},
@@ -268,11 +269,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
         Скачивает список покупок в текстовый файл
         """
         ingredients = (
-            RecipeIngredients.objects
-            .filter(recipe__shopping_list__user=request.user)
-            .values('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(total_amount=Sum('amount'))
-            .order_by('ingredient__name')
+            RecipeIngredients.objects.filter(
+                recipe__shopping_list__user=request.user,
+            ).values(
+                'ingredient__name',
+                'ingredient__measurement_unit',
+            ).annotate(
+                total_amount=Sum('amount'),
+            ).order_by(
+                'ingredient__name',
+            )
         )
 
         purchased = ["Список ваших покупок:"]
@@ -304,10 +310,3 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         short_link = f"{request.get_host()}/s/{recipe.id}/"
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
-
-    def short_link_redirect(request, recipe_id):
-        """
-        Совершает редирект на страницу рецепта
-        """
-        get_object_or_404(Recipe, id=recipe_id)
-        return redirect(f'/recipes/{recipe_id}')

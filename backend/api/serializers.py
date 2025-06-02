@@ -1,10 +1,10 @@
+from rest_framework import serializers
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
 
+from recipes.constants import AMOUNT_MIN_VALUE, AMOUNT_MIN_VALUE_ERROR_MESSAGE
 from recipes.models import Ingredient, Recipe, RecipeIngredients
-from users.models import Subscription, User
-
+from users.models import User
 from .constants import RECIPES_LIMIT_QUERY_PARAM
 
 
@@ -47,10 +47,10 @@ class AppUserSerializer(UserSerializer):
         """
         Проверяет, подписан ли текущий пользователь на данного пользователя
         """
-        user_id = self.context.get("request").user.id
-        return Subscription.objects.filter(
-            author=obj.id, user=user_id
-        ).exists()
+        user = self.context.get("request").user
+        if user.is_authenticated:
+            return obj.author.filter(user=user).exists()
+        return False
 
 
 class UserSubscriptionSerializer(AppUserSerializer):
@@ -78,8 +78,6 @@ class UserSubscriptionSerializer(AppUserSerializer):
         """
         Получает список рецептов автора с учетом лимита
         """
-        from .serializers import ShortRecipeSerializer
-
         recipes_limit = self.context.get("request").query_params.get(
             RECIPES_LIMIT_QUERY_PARAM
         )
@@ -134,6 +132,15 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredients
         fields = ("id", "name", "measurement_unit", "amount")
+        # Не дублируем написание валидатора из модели
+        extra_kwargs = {
+            'amount': {
+                'min_value': AMOUNT_MIN_VALUE,
+                'error_messages': {
+                    'min_value': AMOUNT_MIN_VALUE_ERROR_MESSAGE
+                }
+            }
+        }
 
 
 class CreateUpdateRecipeIngredientsSerializer(serializers.ModelSerializer):
@@ -145,6 +152,15 @@ class CreateUpdateRecipeIngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredients
         fields = ("id", "amount")
+        # Не дублируем написание валидатора из модели
+        extra_kwargs = {
+            'amount': {
+                'min_value': AMOUNT_MIN_VALUE,
+                'error_messages': {
+                    'min_value': AMOUNT_MIN_VALUE_ERROR_MESSAGE
+                }
+            }
+        }
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -180,7 +196,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         user = self.context.get("request").user
         if user.is_authenticated:
             return user.shopping_list.filter(
-                recipe=obj
+                recipe=obj,
             ).exists()
         return False
 

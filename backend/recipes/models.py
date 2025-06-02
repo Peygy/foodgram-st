@@ -2,7 +2,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from users.models import User
-
 from .constants import (
     AMOUNT_MIN_VALUE,
     AMOUNT_MIN_VALUE_ERROR_MESSAGE,
